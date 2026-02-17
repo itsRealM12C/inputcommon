@@ -1,0 +1,99 @@
+@font-face { font-family: 'Miso'; src: local('Miso'), url('fonts/miso.ttf'); }
+body { 
+    margin: 0; background: #000; overflow: hidden; font-family: 'Miso', sans-serif; 
+    user-select: none; -webkit-user-select: none; cursor: none;
+}
+body.show-cursor { cursor: default; }
+
+#video-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+video { width: 100%; height: 100%; object-fit: cover; background: black; }
+
+/* HOT ZONE */
+#top-hotzone { position: absolute; top: 0; left: 0; width: 100%; height: 50px; z-index: 200; }
+
+/* INPUT UI */
+#ui-overlay { position: absolute; top: 0; left: 0; z-index: 10; display: none; width: fit-content; }
+
+.focusable-wrapper { 
+    display: inline-block; padding: 18px 120px 18px 45px; position: relative; 
+    /* Updated Gradient: 90% -> 50% -> 0% */
+    background: linear-gradient(to right, 
+        rgba(0, 0, 0, 0.9) 0%, 
+        rgba(0, 0, 0, 0.5) 50%, 
+        rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 100%);
+}
+
+/* SELECTION - Instant color swap */
+#ui-overlay.is-selected .focusable-wrapper { background: transparent; }
+#ui-overlay.is-selected .focusable-wrapper::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: #ff007f; z-index: -2;
+    clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 100%);
+}
+#ui-overlay.is-selected .focusable-wrapper::after {
+    content: ""; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+    background: #000; z-index: -1;
+    clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 100%);
+}
+
+#input-name { color: white; font-size: 54px; margin: 0; text-transform: uppercase; letter-spacing: normal; }
+
+/* MOD MENU BUTTON - Position Adjusted Lower */
+#menu-btn {
+    position: absolute; 
+    bottom: 25px; /* Moved down from 40px */
+    left: 40px; 
+    width: 75px; height: 75px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%; z-index: 15;
+    display: none; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; border: none;
+    transition: none;
+}
+
+.btn-placeholder {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #222 url('https://via.placeholder.com/150/222222/ff007f?text=MOD') no-repeat center/cover;
+    opacity: 0.4; z-index: -1;
+}
+
+#menu-btn.is-selected { 
+    background: #ff007f !important; 
+    transform: none !important;
+}
+
+#menu-btn svg { width: 35px; height: 35px; fill: white; }
+
+/* MOD MENU */
+#mod-menu {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 350px; background: rgba(10, 10, 10, 0.98); border: 2px solid #ff007f;
+    color: white; z-index: 100; display: none; padding: 25px;
+}
+.menu-item { padding: 15px; display: flex; align-items: center; border: 2px solid transparent; margin-top: 10px; font-size: 20px; }
+.menu-item.focused { border-color: #ff007f; background: rgba(255, 0, 127, 0.2); }
+.checkbox { width: 22px; height: 22px; border: 2px solid white; margin-right: 15px; display: flex; align-items: center; justify-content: center; }
+.checkbox.checked { background: #4CAF50; border: 2px solid #4CAF50; }
+.checkbox.checked::after { content: "✓"; font-size: 16px; color: white; }
+
+/* mod menu close button */
+#mod-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    color: #ff007f;
+    border: 1px solid rgba(255,0,127,0.15);
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+#mod-close:hover { background: rgba(255,0,127,0.06); }

@@ -1,59 +1,51 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>webOS HDMI Record Test</title>
-    <style>
-        body { background: #222; color: white; font-family: sans-serif; }
-        /* The video element for HDMI input */
-        #hdmi-source {
-            width: 50%;
-            height: 50%;
-            background: #000;
-            border: 2px solid #555;
-        }
-    </style>
-</head>
 <body>
-    <h1>webOS HDMI 2 Viewer</h1>
-    
-    <!-- Your requested video tag -->
-    <video id="hdmi-source" autoplay style="width:50%;height:50%">
-        <source type="service/webos-external" src="ext://hdmi:2">
-    </video>
+    <video autoplay style="width:50%;height:50%"><source src="ext://hdmi:2"></video>
+    <button onclick="startPoorCapture()">Start 10s "Recording"</button>
+    <canvas id="stitcher" style="display:none"></canvas>
+    <img id="preview" style="width:50%; border:2px solid red">
 
-    <div style="margin-top: 10px;">
-        <button onclick="tryRecord()">Attempt Record (Will likely fail for HDMI)</button>
-        <p id="status"></p>
-    </div>
-
+    <script src="webOSTVjs-1.1.1/webOSTV.js"></script>
     <script>
-        function tryRecord() {
-            const videoElement = document.getElementById('hdmi-source');
-            const status = document.getElementById('status');
+        let frames = [];
+        let captureCount = 0;
 
-            try {
-                // captureStream() is required to record a video element
-                // Note: Chrome 53 may require this to be enabled in flags
-                const stream = videoElement.captureStream ? videoElement.captureStream() : videoElement.mozCaptureStream();
+        function startPoorCapture() {
+            frames = [];
+            captureCount = 0;
+            const interval = setInterval(() => {
+                if (captureCount >= 10) { // 10 frames over 10 seconds
+                    clearInterval(interval);
+                    playBack();
+                    return;
+                }
                 
-                const recorder = new MediaRecorder(stream);
-                const chunks = [];
+                // Luna call to capture HDMI pixels
+                webOS.service.request("luna://com.webos.service.capture", {
+                    method: "executeOneShot",
+                    parameters: {
+                        "path": `/tmp/frame_${captureCount}.jpg`,
+                        "method": "SCREEN_WITH_SOURCE_VIDEO", // CRITICAL for HDMI
+                        "format": "JPG",
+                        "width": 640, "height": 360 // Lower res for "poor" quality
+                    },
+                    onSuccess: (res) => {
+                        // In a real app, you'd fetch the file from /tmp via XHR/Fetch
+                        frames.push(`/tmp/frame_${captureCount}.jpg`);
+                        captureCount++;
+                    }
+                });
+            }, 1000);
+        }
 
-                recorder.ondataavailable = e => chunks.push(e.data);
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    console.log("Blob URL created:", url);
-                    status.innerHTML = "Blob URL created! (Check console)";
-                };
-
-                recorder.start();
-                status.innerHTML = "Recording... (Stop in 3s)";
-                
-                setTimeout(() => recorder.stop(), 3000);
-            } catch (err) {
-                status.innerHTML = "Error: " + err.message + " (HDMI recording is blocked by webOS hardware)";
-            }
+        function playBack() {
+            let i = 0;
+            const img = document.getElementById('preview');
+            setInterval(() => {
+                img.src = frames[i % frames.length] + "?t=" + Date.now();
+                i++;
+            }, 500); // Playback at 2fps for that "poor" look
         }
     </script>
 </body>
